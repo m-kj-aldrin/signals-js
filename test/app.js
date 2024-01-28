@@ -16,7 +16,7 @@ let list_el = document.createElement("ul")
 
 document.body.append(age_el, name_el, list_el)
 
-function list_item(value, index = 0) {
+function list_item(value = '', index = 0) {
   const el = document.createElement("li")
   el.innerHTML = `<div>${value}</div>`
 
@@ -24,7 +24,7 @@ function list_item(value, index = 0) {
   remove_button.textContent = 'rem'
   el.appendChild(remove_button)
 
-  remove_button.onclick = e => {
+  remove_button.onclick = () => {
     s_list.value.splice(index, 1)
     s_list.signal()
   }
