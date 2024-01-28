@@ -12,6 +12,18 @@ export class Signal {
   #context_references = new Set()
 
   static group() {
+    /**@type {Set<Signal>} */
+    let group = new Set()
+
+    return {
+      /**@param {Signal} signal */
+      add(signal) {
+        group.add(signal)
+      },
+      clear_effects() {
+        group.forEach(s => s.#context_references.clear())
+      }
+    }
   }
 
   /** @param {T} init */
