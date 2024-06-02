@@ -2,9 +2,6 @@
 /**@typedef {()=>Promise<void>} PromiseContext */
 /**@typedef {string} ContextID */
 
-// /**@type {Set<Context>} */
-// const allContexts = new Set();
-
 /**
  * @template T
  */
@@ -61,18 +58,12 @@ export class Signal {
    * @type {T}
    */
   get value() {
-    // if (this instanceof Derived) {
-    //   if (allContexts.has(current_context)) {
-    //     return this.#value;
-    //   }
-    // }
     if (current_derived) {
       this.#derived_references.add(current_derived);
     }
     if (current_context) {
       dependent_signals.add(this);
       this.#context_references.add(current_context);
-      // allContexts.add(current_context);
     }
 
     return this.#value;
@@ -95,8 +86,6 @@ export class Signal {
    */
   clear(fn) {
     this.#context_references.delete(fn);
-    // let c = [...this.#context_references].find(( context_id) => context_id == id);
-    // this.#context_references.delete(c);
   }
 }
 
@@ -154,6 +143,7 @@ export function effect(fn, id = undefined) {
     });
   });
   dependent_signals.clear();
+  return fn;
 }
 
 /**
