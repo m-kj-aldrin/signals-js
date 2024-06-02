@@ -41,57 +41,82 @@ batch(() => {
   ]);
 });
 
-document.body.append(count0Btn, count1Btn, resultElement);
+document.body.append(count0Btn, count1Btn, resultElement, document.createElement("br"));
 
-// let s_age = new Signal(0);
+let s_age = new Signal(0);
 
-// let s_name = new Signal("");
-// /**@type {Signal<string[]>} */
-// let s_list = new Signal([]);
+let s_name = new Signal("none");
+/**@type {Signal<{value:string,id:string}[]>} */
+let s_list = new Signal([]);
 
-// let age_el = document.createElement("div");
-// let name_el = document.createElement("div");
-// let list_el = document.createElement("ul");
+let age_el = document.createElement("div");
+let name_el = document.createElement("div");
+let list_el = document.createElement("ul");
 
-// document.body.append(age_el, name_el, list_el);
+document.body.append(age_el, name_el, list_el);
 
-// function list_item(value = "", index = 0) {
-//   const el = document.createElement("li");
-//   el.innerHTML = `<div>${value}</div>`;
+function list_item(value = "", id) {
+  const el = document.createElement("li");
+  el.setAttribute("data-list-id", id);
+  el.innerHTML = `<div >${value}</div>`;
 
-//   let remove_button = document.createElement("button");
-//   remove_button.textContent = "rem";
-//   el.appendChild(remove_button);
+  let remove_button = document.createElement("button");
+  remove_button.textContent = "rem";
+  el.appendChild(remove_button);
 
-//   remove_button.onclick = () => {
-//     s_list.value.splice(index, 1);
-//     s_list.signal();
-//   };
+  remove_button.onclick = () => {
+    let index = +el.getAttribute("data-index");
+    s_list.value.splice(index, 1);
+    s_list.signal();
+  };
 
-//   return el;
-// }
+  return el;
+}
 
-// effect(() => {
-//   age_el.textContent = `age: ${s_age.value.toString()}`;
-//   name_el.textContent = `name: ${s_name.value}`;
+effect(() => {
+  age_el.textContent = `age: ${s_age.value.toString()}`;
+  name_el.textContent = `name: ${s_name.value}`;
+});
 
-//   list_el.innerHTML = "";
-//   list_el.append(...s_list.value.map((v, i) => list_item(v, i)));
-// });
+effect(() => {
+  let newItems = s_list.value.filter((s) => !list_el.querySelector(`[data-list-id="${s.id}"]`));
+  list_el.append(...newItems.map(({ value, id }) => list_item(value, id)));
 
-// let list_input = document.createElement("input");
-// list_input.addEventListener(
-//   "change",
-//   /** @param {InputEvent & {target:HTMLInputElement}} e */ (e) => {
-//     s_list.value.push(e.target.value);
-//     s_list.signal();
-//     e.target.value = "";
-//   }
-// );
+  /**@type {HTMLElement[]} */
+  let children = [...list_el.querySelectorAll("[data-list-id]")];
 
-// document.body.appendChild(list_input);
+  let removeItems = children.filter(
+    (el) => !s_list.value.some(({ id }) => el.getAttribute("data-list-id") == id)
+  );
 
-// document.body.appendChild(document.createElement("br"));
+  removeItems.forEach((el) => el.remove());
+
+  children.forEach((child, i) => child.setAttribute("data-index", `${i}`));
+});
+
+let list_input = document.createElement("input");
+list_input.addEventListener(
+  "change",
+  /** @param {InputEvent & {target:HTMLInputElement}} e */ (e) => {
+    // Push method of the array does not call the setter, use .signal() to signal all dependent effects
+    // s_list.value.push(e.target.value);
+    // s_list.signal();
+
+    //Or spread the current value + new value into a new array on the setter
+    s_list.value = [...s_list.value, { value: e.target.value, id: crypto.randomUUID() }];
+
+    batch(() => {
+      s_name.value = e.target.value;
+      s_age.value = Math.floor(Math.random() * 119) + 1;
+    });
+
+    e.target.value = "";
+  }
+);
+
+document.body.appendChild(list_input);
+
+document.body.append(document.createElement("br"), document.createElement("br"));
 
 // Test for effectgroup/effectid, users should be able to update/reinit/clear an effect based on id/group
 // This ensures that the caller of effect can manage the scope that a signal should know about
