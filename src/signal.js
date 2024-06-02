@@ -54,11 +54,11 @@ export class Signal {
    * @type {T}
    */
   get value() {
-    if (this instanceof Derived) {
-      if (allContexts.has(current_context)) {
-        return this.#value;
-      }
-    }
+    // if (this instanceof Derived) {
+    //   if (allContexts.has(current_context)) {
+    //     return this.#value;
+    //   }
+    // }
     if (current_context) {
       this.#context_references.add([current_context, current_context_id]);
       allContexts.add(current_context);
