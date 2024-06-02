@@ -2,9 +2,6 @@
 /**@typedef {()=>Promise<void>} PromiseContext */
 /**@typedef {string} ContextID */
 
-/**@type {Set<[Context,ContextID]>} */
-const allContexts = new Set();
-
 /**
  * @template T
  */
@@ -12,8 +9,11 @@ export class Signal {
   /** @type {T} */
   #value;
 
-  /**@type {Set<[Context,ContextID]>} */
+  /**@type {Set<Context>} */
   #context_references = new Set();
+
+  /**@type {Set<Derived>} */
+  #derived_references = new Set();
 
   static group() {
     /**@type {Set<Signal>} */
@@ -35,6 +35,10 @@ export class Signal {
     this.#value = init;
   }
 
+  get derived_refs() {
+    return this.#derived_references;
+  }
+
   /**
    * set: sets value and runs all the effects referencing this Signal
    */
@@ -42,9 +46,9 @@ export class Signal {
     this.#value = v;
 
     if (is_batching) {
-      this.#context_references.forEach(([context]) => batch_context.add(context));
+      this.#context_references.forEach((context) => batch_context.add(context));
     } else {
-      this.#context_references.forEach(([context]) => context());
+      this.#context_references.forEach((context) => context());
     }
   }
 
@@ -54,14 +58,12 @@ export class Signal {
    * @type {T}
    */
   get value() {
-    if (this instanceof Derived) {
-      if (allContexts.has(current_context)) {
-        return this.#value;
-      }
+    if (current_derived) {
+      this.#derived_references.add(current_derived);
     }
     if (current_context) {
-      this.#context_references.add([current_context, current_context_id]);
-      allContexts.add(current_context);
+      dependent_signals.add(this);
+      this.#context_references.add(current_context);
     }
 
     return this.#value;
@@ -72,19 +74,18 @@ export class Signal {
    */
   signal() {
     if (is_batching) {
-      this.#context_references.forEach(([context]) => batch_context.add(context));
+      this.#context_references.forEach((context) => batch_context.add(context));
     } else {
-      this.#context_references.forEach(([context]) => context());
+      this.#context_references.forEach((context) => context());
     }
   }
 
   /**
    * Removes an effect based on id
-   * @param {ContextID} id
+   * @param {Context} fn
    */
-  clear(id) {
-    let c = [...this.#context_references].find(([_, context_id]) => context_id == id);
-    this.#context_references.delete(c);
+  clear(fn) {
+    this.#context_references.delete(fn);
   }
 }
 
@@ -99,15 +100,23 @@ export class Derived extends Signal {
   constructor(fn) {
     super();
 
+    current_derived = this;
     effect(() => {
       this.value = fn();
     });
+    current_derived = undefined;
   }
 }
 
 let current_context = undefined;
 /**@type {string} */
 let current_context_id = undefined;
+
+/**@type {Derived} */
+let current_derived = undefined;
+
+/**@type {Set<Signal|Derived>} */
+let dependent_signals = new Set();
 
 let is_batching = false;
 /** @type {Set<Context>} */
@@ -124,6 +133,17 @@ export function effect(fn, id = undefined) {
   fn();
   current_context = undefined;
   current_context_id = undefined;
+
+  let derives = [...dependent_signals.values()].filter((s) => s instanceof Derived);
+  dependent_signals.forEach((s) => {
+    derives.forEach((d) => {
+      if (s.derived_refs.has(d)) {
+        d.clear(fn);
+      }
+    });
+  });
+  dependent_signals.clear();
+  return fn;
 }
 
 /**

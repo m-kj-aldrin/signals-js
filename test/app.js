@@ -19,18 +19,28 @@ count1Btn.addEventListener("click", (e) => {
 });
 
 effect(() => {
-  console.log("product effect");
+  count0Btn.textContent = `${count0.value}`;
+});
+
+effect(() => {
+  count1Btn.textContent = `${count1.value}`;
+});
+
+effect(() => {
   resultElement.textContent = `${count0.value} * ${count1.value}` + " = " + product.value;
 });
 
-//Make sure that the product effect only run once for the following update
+// Make sure that the product effect only run once for the following update
 batch(() => {
+  count0Btn.disabled = true;
+  count1Btn.disabled = true;
+
   return Promise.all([
     new Promise((res) => {
       setTimeout(() => {
         count0.value = 2;
         res();
-      }, 300);
+      }, 500);
     }),
     new Promise((res) => {
       setTimeout(() => {
@@ -39,6 +49,9 @@ batch(() => {
       }, 1000);
     }),
   ]);
+}).then(() => {
+  count0Btn.disabled = false;
+  count1Btn.disabled = false;
 });
 
 document.body.append(count0Btn, count1Btn, resultElement, document.createElement("br"));
@@ -129,16 +142,18 @@ picker_button.textContent = "pick";
 /**@type {Signal<number>} */
 let picker_signal = null;
 
+/**@type {import("../src/signal.js").Context} */
+let picker_effect = null;
+
 /**
  * @param {MouseEvent & {target:HTMLElement}} e
  * @this {HTMLElement}
  */
 function picker_handler(e) {
   if (e.target.getAttribute("data-pick") == "element") {
-    picker_signal?.clear("picker");
+    picker_signal?.clear(picker_effect);
 
     let index = +e.target.getAttribute("data-index");
-    // let { s } = pick_list_signals[index];
     let { s } = pick_list_signals.find(
       ({ pick_element }) => +pick_element.getAttribute("data-index") == index
     );
@@ -146,9 +161,9 @@ function picker_handler(e) {
 
     // This is where the effect is called
     // It needs to be unique
-    effect(() => {
+    picker_effect = effect(() => {
       console.log(`picked item change: idx: ${s.value}`);
-    }, "picker");
+    });
 
     window.removeEventListener("click", bound_picker);
     bound_picker = null;
