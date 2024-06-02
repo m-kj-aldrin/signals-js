@@ -19,10 +19,15 @@ count1Btn.addEventListener("click", (e) => {
 });
 
 effect(() => {
-  console.log(count0.value, count0.value);
-  // console.log("product effect");
-  // resultElement.textContent =
-  //   `${product.value} : ${count0.value} * ${count1.value}` + " = " + product.value;
+  count0Btn.textContent = `${count0.value}`;
+});
+
+effect(() => {
+  count1Btn.textContent = `${count1.value}`;
+});
+
+effect(() => {
+  resultElement.textContent = `${count0.value} * ${count1.value}` + " = " + product.value;
 });
 
 //Make sure that the product effect only run once for the following update
