@@ -1,4 +1,5 @@
 /**@typedef {()=>void} Context */
+/**@typedef {()=>Promise<void>} PromiseContext */
 /**@typedef {string} ContextID */
 
 /**@type {Set<[Context,ContextID]>} */
@@ -126,12 +127,12 @@ export function effect(fn, id = undefined) {
 }
 
 /**
- * Updates to signals inside a batch context signals dependent effects only once if multiple signals shares same effects
- * @param {Context} fn
+ * setting value of signals inside a batch fn only signals dependent effects once if multiple signals shares same effects, if fn returns promise dependent effect is run when it resolves
+ * @param {Context | PromiseContext} fn
  */
-export function batch(fn) {
+export async function batch(fn) {
   is_batching = true;
-  fn();
+  await fn();
   is_batching = false;
   batch_context.forEach((context) => context());
   batch_context.clear();

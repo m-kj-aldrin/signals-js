@@ -19,7 +19,26 @@ count1Btn.addEventListener("click", (e) => {
 });
 
 effect(() => {
+  console.log("product effect");
   resultElement.textContent = `${count0.value} * ${count1.value}` + " = " + product.value;
+});
+
+//Make sure that the product effect only run once for the following update
+batch(() => {
+  return Promise.all([
+    new Promise((res) => {
+      setTimeout(() => {
+        count0.value = 2;
+        res();
+      }, 300);
+    }),
+    new Promise((res) => {
+      setTimeout(() => {
+        count1.value = 3;
+        res();
+      }, 1000);
+    }),
+  ]);
 });
 
 document.body.append(count0Btn, count1Btn, resultElement);
