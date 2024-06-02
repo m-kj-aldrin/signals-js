@@ -1,6 +1,6 @@
 {
   "name": "@mkja/signals",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "description": "implementation of signals pattern",
   "main": "src/index.js",
   "directories": {
@@ -20,7 +20,7 @@
     "library",
     "state management"
   ],
-  "author": "mkj",
+  "author": "mkja",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/m-kj-aldrin/signals-js/issues"
