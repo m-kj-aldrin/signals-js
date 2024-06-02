@@ -1,4 +1,4 @@
-import { batch, effect, Signal, Derived } from "../src/signal.js";
+import { batch, effect, Signal, Derived } from "../src/index.js";
 
 let count0 = new Signal(0);
 let count1 = new Signal(0);
@@ -142,7 +142,7 @@ picker_button.textContent = "pick";
 /**@type {Signal<number>} */
 let picker_signal = null;
 
-/**@type {import("../src/signal.js").Context} */
+/**@type {import("../src/index.js").Context} */
 let picker_effect = null;
 
 /**
