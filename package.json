@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "type": "module",
   "files": [
-    "src"
+    "src",
+    "jsconfig.json"
   ],
   "publishConfig": {
     "access": "public"
