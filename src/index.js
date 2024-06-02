@@ -1,3 +1,7 @@
+/**
+ * @module signals
+ */
+
 /**@typedef {()=>void} Context */
 /**@typedef {()=>Promise<void>} PromiseContext */
 /**@typedef {string} ContextID */
