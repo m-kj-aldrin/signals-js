@@ -4,9 +4,10 @@
   "description": "implementation of signals pattern",
   "main": "src/index.js",
   "type": "module",
+  "types": "types/signals.d.ts",
   "files": [
-    "src",
-    "jsconfig.json"
+    "signals.js",
+    "types"
   ],
   "publishConfig": {
     "access": "public"
