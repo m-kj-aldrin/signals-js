@@ -1,6 +1,6 @@
 {
   "name": "@mkja/signals",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "implementation of signals pattern",
   "main": "src/index.js",
   "type": "module",
