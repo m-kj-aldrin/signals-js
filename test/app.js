@@ -1,219 +1,233 @@
-import { batch, effect, Signal, Derived } from "../signals.js";
+import { Signal, effect } from "../signals.js";
 
-let count0 = new Signal(0);
-let count1 = new Signal(0);
-//Type of dervied is based on ReturnType of the passed fn
-let product = new Derived(() => `${count0.value * count1.value}`);
+let s0 = new Signal(0);
 
-const count0Btn = document.createElement("button");
-count0Btn.textContent = "c0";
-const count1Btn = document.createElement("button");
-count1Btn.textContent = "c1";
-const resultElement = document.createElement("div");
+const dispose = effect(() => {
+  console.log(s0.value);
 
-count0Btn.addEventListener("click", (e) => {
-  count0.value++;
-});
-count1Btn.addEventListener("click", (e) => {
-  count1.value++;
+  return () => {};
 });
 
-effect(() => {
-  count0Btn.textContent = `${count0.value}`;
-});
+setTimeout(() => {
+  s0.value = 1;
+}, 1000);
 
-effect(() => {
-  count1Btn.textContent = `${count1.value}`;
-});
+// import { batch, effect, Signal, Derived } from "../signals.js";
 
-effect(() => {
-  resultElement.textContent = `${count0.value} * ${count1.value}` + " = " + product.value;
-});
+// let count0 = new Signal(0);
+// let count1 = new Signal(0);
+// //Type of dervied is based on ReturnType of the passed fn
+// let product = new Derived(() => `${count0.value * count1.value}`);
 
-// Make sure that the product effect only run once for the following update
-batch(() => {
-  count0Btn.disabled = true;
-  count1Btn.disabled = true;
+// const count0Btn = document.createElement("button");
+// count0Btn.textContent = "c0";
+// const count1Btn = document.createElement("button");
+// count1Btn.textContent = "c1";
+// const resultElement = document.createElement("div");
 
-  return Promise.all([
-    new Promise((res) => {
-      setTimeout(() => {
-        count0.value = 2;
-        res();
-      }, 500);
-    }),
-    new Promise((res) => {
-      setTimeout(() => {
-        count1.value = 3;
-        res();
-      }, 1000);
-    }),
-  ]);
-}).then(() => {
-  count0Btn.disabled = false;
-  count1Btn.disabled = false;
-});
+// count0Btn.addEventListener("click", (e) => {
+//   count0.value++;
+// });
+// count1Btn.addEventListener("click", (e) => {
+//   count1.value++;
+// });
 
-document.body.append(count0Btn, count1Btn, resultElement, document.createElement("br"));
+// effect(() => {
+//   count0Btn.textContent = `${count0.value}`;
+// });
 
-let s_age = new Signal(0);
+// effect(() => {
+//   count1Btn.textContent = `${count1.value}`;
+// });
 
-let s_name = new Signal("none");
-/**@type {Signal<{value:string,id:string}[]>} */
-let s_list = new Signal([]);
+// effect(() => {
+//   resultElement.textContent = `${count0.value} * ${count1.value}` + " = " + product.value;
+// });
 
-let age_el = document.createElement("div");
-let name_el = document.createElement("div");
-let list_el = document.createElement("ul");
+// // Make sure that the product effect only run once for the following update
+// batch(() => {
+//   count0Btn.disabled = true;
+//   count1Btn.disabled = true;
 
-document.body.append(age_el, name_el, list_el);
+//   return Promise.all([
+//     new Promise((res) => {
+//       setTimeout(() => {
+//         count0.value = 2;
+//         res();
+//       }, 500);
+//     }),
+//     new Promise((res) => {
+//       setTimeout(() => {
+//         count1.value = 3;
+//         res();
+//       }, 1000);
+//     }),
+//   ]);
+// }).then(() => {
+//   count0Btn.disabled = false;
+//   count1Btn.disabled = false;
+// });
 
-function list_item(value = "", id) {
-  const el = document.createElement("li");
-  el.setAttribute("data-list-id", id);
-  el.innerHTML = `<div >${value}</div>`;
+// document.body.append(count0Btn, count1Btn, resultElement, document.createElement("br"));
 
-  let remove_button = document.createElement("button");
-  remove_button.textContent = "rem";
-  el.appendChild(remove_button);
+// let s_age = new Signal(0);
 
-  remove_button.onclick = () => {
-    let index = +el.getAttribute("data-index");
-    s_list.value.splice(index, 1);
-    s_list.signal();
-  };
+// let s_name = new Signal("none");
+// /**@type {Signal<{value:string,id:string}[]>} */
+// let s_list = new Signal([]);
 
-  return el;
-}
+// let age_el = document.createElement("div");
+// let name_el = document.createElement("div");
+// let list_el = document.createElement("ul");
 
-effect(() => {
-  age_el.textContent = `age: ${s_age.value.toString()}`;
-  name_el.textContent = `name: ${s_name.value}`;
-});
+// document.body.append(age_el, name_el, list_el);
 
-effect(() => {
-  let newItems = s_list.value.filter((s) => !list_el.querySelector(`[data-list-id="${s.id}"]`));
-  list_el.append(...newItems.map(({ value, id }) => list_item(value, id)));
+// function list_item(value = "", id) {
+//   const el = document.createElement("li");
+//   el.setAttribute("data-list-id", id);
+//   el.innerHTML = `<div >${value}</div>`;
 
-  /**@type {HTMLElement[]} */
-  let children = [...list_el.querySelectorAll("[data-list-id]")];
+//   let remove_button = document.createElement("button");
+//   remove_button.textContent = "rem";
+//   el.appendChild(remove_button);
 
-  let removeItems = children.filter(
-    (el) => !s_list.value.some(({ id }) => el.getAttribute("data-list-id") == id)
-  );
+//   remove_button.onclick = () => {
+//     let index = +el.getAttribute("data-index");
+//     s_list.value.splice(index, 1);
+//     s_list.signal();
+//   };
 
-  removeItems.forEach((el) => el.remove());
+//   return el;
+// }
 
-  children.forEach((child, i) => child.setAttribute("data-index", `${i}`));
-});
+// effect(() => {
+//   age_el.textContent = `age: ${s_age.value.toString()}`;
+//   name_el.textContent = `name: ${s_name.value}`;
+// });
 
-let list_input = document.createElement("input");
-list_input.addEventListener(
-  "change",
-  /** @param {InputEvent & {target:HTMLInputElement}} e */ (e) => {
-    // Push method of the array does not call the setter, use .signal() to signal all dependent effects
-    // s_list.value.push(e.target.value);
-    // s_list.signal();
+// effect(() => {
+//   let newItems = s_list.value.filter((s) => !list_el.querySelector(`[data-list-id="${s.id}"]`));
+//   list_el.append(...newItems.map(({ value, id }) => list_item(value, id)));
 
-    //Or spread the current value + new value into a new array on the setter
-    s_list.value = [...s_list.value, { value: e.target.value, id: crypto.randomUUID() }];
+//   /**@type {HTMLElement[]} */
+//   let children = [...list_el.querySelectorAll("[data-list-id]")];
 
-    batch(() => {
-      s_name.value = e.target.value;
-      s_age.value = Math.floor(Math.random() * 119) + 1;
-    });
+//   let removeItems = children.filter(
+//     (el) => !s_list.value.some(({ id }) => el.getAttribute("data-list-id") == id)
+//   );
 
-    e.target.value = "";
-  }
-);
+//   removeItems.forEach((el) => el.remove());
 
-document.body.appendChild(list_input);
+//   children.forEach((child, i) => child.setAttribute("data-index", `${i}`));
+// });
 
-document.body.append(document.createElement("br"), document.createElement("br"));
+// let list_input = document.createElement("input");
+// list_input.addEventListener(
+//   "change",
+//   /** @param {InputEvent & {target:HTMLInputElement}} e */ (e) => {
+//     // Push method of the array does not call the setter, use .signal() to signal all dependent effects
+//     // s_list.value.push(e.target.value);
+//     // s_list.signal();
 
-// Test for effectgroup/effectid, users should be able to update/reinit/clear an effect based on id/group
-// This ensures that the caller of effect can manage the scope that a signal should know about
-// As in the case below, a user picks an pick_item(signal) but should only be able to pick one item and still "listen" for changes on that signal
-// We need to clear the old effect before giving the pick_item(signal) an new effect(context)
+//     //Or spread the current value + new value into a new array on the setter
+//     s_list.value = [...s_list.value, { value: e.target.value, id: crypto.randomUUID() }];
 
-let picker_button = document.createElement("button");
-picker_button.textContent = "pick";
+//     batch(() => {
+//       s_name.value = e.target.value;
+//       s_age.value = Math.floor(Math.random() * 119) + 1;
+//     });
 
-/**@type {Signal<number>} */
-let picker_signal = null;
+//     e.target.value = "";
+//   }
+// );
 
-/**@type {import("../src/index.js").Context} */
-let picker_effect = null;
+// document.body.appendChild(list_input);
 
-/**
- * @param {MouseEvent & {target:HTMLElement}} e
- * @this {HTMLElement}
- */
-function picker_handler(e) {
-  if (e.target.getAttribute("data-pick") == "element") {
-    picker_signal?.clear(picker_effect);
+// document.body.append(document.createElement("br"), document.createElement("br"));
 
-    let index = +e.target.getAttribute("data-index");
-    let { s } = pick_list_signals.find(
-      ({ pick_element }) => +pick_element.getAttribute("data-index") == index
-    );
-    picker_signal = s;
+// // Test for effectgroup/effectid, users should be able to update/reinit/clear an effect based on id/group
+// // This ensures that the caller of effect can manage the scope that a signal should know about
+// // As in the case below, a user picks an pick_item(signal) but should only be able to pick one item and still "listen" for changes on that signal
+// // We need to clear the old effect before giving the pick_item(signal) an new effect(context)
 
-    // This is where the effect is called
-    // It needs to be unique
-    picker_effect = effect(() => {
-      console.log(`picked item change: idx: ${s.value}`);
-    });
+// let picker_button = document.createElement("button");
+// picker_button.textContent = "pick";
 
-    window.removeEventListener("click", bound_picker);
-    bound_picker = null;
-  }
-}
+// /**@type {Signal<number>} */
+// let picker_signal = null;
 
-/**@type {typeof picker_handler} */
-let bound_picker = null;
+// /**@type {import("../src/index.js").Context} */
+// let picker_effect = null;
 
-picker_button.addEventListener("click", (e) => {
-  window.addEventListener("click", (bound_picker = picker_handler));
-});
+// /**
+//  * @param {MouseEvent & {target:HTMLElement}} e
+//  * @this {HTMLElement}
+//  */
+// function picker_handler(e) {
+//   if (e.target.getAttribute("data-pick") == "element") {
+//     picker_signal?.clear(picker_effect);
 
-let pick_list = document.createElement("ul");
+//     let index = +e.target.getAttribute("data-index");
+//     let { s } = pick_list_signals.find(
+//       ({ pick_element }) => +pick_element.getAttribute("data-index") == index
+//     );
+//     picker_signal = s;
 
-let pick_list_signals = [...Array(4)].map((_, i) => {
-  let s = new Signal(i);
+//     // This is where the effect is called
+//     // It needs to be unique
+//     picker_effect = effect(() => {
+//       console.log(`picked item change: idx: ${s.value}`);
+//     });
 
-  let pick_element = document.createElement("li");
-  pick_element.setAttribute("data-pick", "element");
+//     window.removeEventListener("click", bound_picker);
+//     bound_picker = null;
+//   }
+// }
 
-  let text_node = document.createTextNode("");
+// /**@type {typeof picker_handler} */
+// let bound_picker = null;
 
-  let remove_button = document.createElement("button");
-  remove_button.textContent = "rem";
-  let random_index_button = document.createElement("button");
-  random_index_button.textContent = "rand";
+// picker_button.addEventListener("click", (e) => {
+//   window.addEventListener("click", (bound_picker = picker_handler));
+// });
 
-  remove_button.addEventListener("click", () => {
-    pick_element.remove();
-    pick_list_signals.splice(s.value, 1);
-    pick_list_signals.forEach(({ s }, i) => (s.value = i));
-  });
+// let pick_list = document.createElement("ul");
 
-  random_index_button.addEventListener("click", (e) => {
-    s.value = Math.floor(Math.random() * 999);
-  });
+// let pick_list_signals = [...Array(4)].map((_, i) => {
+//   let s = new Signal(i);
 
-  pick_element.append(text_node, remove_button, random_index_button);
+//   let pick_element = document.createElement("li");
+//   pick_element.setAttribute("data-pick", "element");
 
-  let id = crypto.randomUUID().replace(/-.*/, "");
+//   let text_node = document.createTextNode("");
 
-  effect(() => {
-    pick_element.setAttribute("data-index", s.value.toString());
-    text_node.textContent = `pick item idx: ${s.value}, id: ${id}`;
-  });
+//   let remove_button = document.createElement("button");
+//   remove_button.textContent = "rem";
+//   let random_index_button = document.createElement("button");
+//   random_index_button.textContent = "rand";
 
-  return { pick_element, s };
-});
+//   remove_button.addEventListener("click", () => {
+//     pick_element.remove();
+//     pick_list_signals.splice(s.value, 1);
+//     pick_list_signals.forEach(({ s }, i) => (s.value = i));
+//   });
 
-pick_list.append(...pick_list_signals.map(({ pick_element }) => pick_element));
+//   random_index_button.addEventListener("click", (e) => {
+//     s.value = Math.floor(Math.random() * 999);
+//   });
 
-document.body.append(picker_button, pick_list);
+//   pick_element.append(text_node, remove_button, random_index_button);
+
+//   let id = crypto.randomUUID().replace(/-.*/, "");
+
+//   effect(() => {
+//     pick_element.setAttribute("data-index", s.value.toString());
+//     text_node.textContent = `pick item idx: ${s.value}, id: ${id}`;
+//   });
+
+//   return { pick_element, s };
+// });
+
+// pick_list.append(...pick_list_signals.map(({ pick_element }) => pick_element));
+
+// document.body.append(picker_button, pick_list);
