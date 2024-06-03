@@ -34,7 +34,7 @@ export class Signal {
     };
   }
 
-  /** @param {T} init */
+  /** @param {T} [init] */
   constructor(init) {
     this.#value = init;
   }

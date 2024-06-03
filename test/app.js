@@ -1,4 +1,4 @@
-import { batch, effect, Signal, Derived } from "../src/index.js";
+import { batch, effect, Signal, Derived } from "../signals.js";
 
 let count0 = new Signal(0);
 let count1 = new Signal(0);
