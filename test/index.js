@@ -5,7 +5,7 @@ let factor1 = new Signal(2);
 let product = new Derived(() => factor0.value * factor1.value);
 
 const dispose = effect(() => {
-  console.log("app effect");
+  // console.log("app effect");
   let str = `${factor0.peek()} * ${factor1.peek()} = ${product.value}`;
   console.log(str);
 
@@ -14,27 +14,27 @@ const dispose = effect(() => {
   };
 });
 
-batch(() => {
-  factor0.value = 2;
-  factor1.value = 5;
+// batch(() => {
+//   factor0.value = 2;
+//   factor1.value = 5;
+// });
+let v0 = new Promise((res) => {
+  setTimeout(() => {
+    res(Math.floor(Math.random() * 100));
+  }, 500);
+});
+let v1 = new Promise((res) => {
+  setTimeout(() => {
+    res(Math.floor(Math.random() * 100));
+  }, 700);
 });
 
-// batch(() => {
-//   return Promise.all([
-//     new Promise((res) => {
-//       setTimeout(() => {
-//         factor0.value = 2;
-//         res();
-//       }, 700);
-//     }),
-//     new Promise((res) => {
-//       setTimeout(() => {
-//         factor1.value = 3;
-//         res();
-//       }, 500);
-//     }),
-//   ]);
-// });
+Promise.all([v0, v1]).then(([v0, v1]) => {
+  batch(() => {
+    factor0.value = v0;
+    factor1.value = v1;
+  });
+});
 
 // let id = setInterval(() => {
 //   factor0.value++;

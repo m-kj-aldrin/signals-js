@@ -31,9 +31,8 @@ export class Signal {
 
     this.#value = v;
 
-    if (current_batch_context) {
-      // this.#context_references.forEach((context) => batch_context.add(context));
-      this.#context_references.forEach((context) => current_batch_context.contexts.add(context));
+    if (is_batching) {
+      this.#context_references.forEach((context) => batch_context.add(context));
     } else {
       [...this.#context_references].forEach((context) => context.notify());
     }
@@ -98,16 +97,6 @@ export class Derived {
 /**@type {Context} */
 let current_context = undefined;
 
-/**@type {BatchContext} */
-let current_batch_context = undefined;
-
-// /**@type {Set<Signal|Derived>} */
-// let dependent_signals = new Set();
-
-// let is_batching = false;
-// /** @type {Set<Context>} */
-// let batch_context = new Set();
-
 /**
  * Create an effect that runs every time the value of Signal is set
  * @param {EffectCallback} fn
@@ -148,45 +137,19 @@ export function effect(fn, id = undefined) {
   return dispose;
 }
 
-/**
- * @typedef {Object} BatchContext
- * @prop {(signal:Signal)=>void} link
- * @prop {Set<Context>} contexts
- */
+let is_batching = false;
 
-/**@type {Set<BatchContext>} */
-const batch_contexts = new Set();
+/**@type {Set<Context>} */
+const batch_context = new Set();
 
 /**
- * setting value of signals inside a batch fn only signals dependent effects once if multiple signals shares same effects, if fn returns promise dependent effect is run when it resolves
+ * setting value of signals inside a batch fn only signals dependent effects once if multiple signals shares same effects
  * @param {EffectCallback | PromiseContext} fn
  */
-export async function batch(fn) {
-  /**@type {Set<Signal>} */
-  let disposeable_signals = new Set();
-
-  /**@param {Signal} signal */
-  function link(signal) {
-    disposeable_signals.add(signal);
-  }
-
-  /**@type {BatchContext} */
-  let batch_context_ = { contexts: new Set(), link };
-
-  batch_contexts.add(batch_context_);
-  current_batch_context = batch_context_;
-
-  // is_batching = true;
-  await fn();
-
-  batch_context_.contexts.forEach((context) => context.notify());
-  // is_batching = false;
-  // batch_context.forEach((context) => context.notify());
-
-  batch_contexts.delete(batch_context_);
-  if (!batch_contexts.size) {
-    current_batch_context = undefined;
-  }
-
-  // batch_context.clear();
+export function batch(fn) {
+  is_batching = true;
+  fn();
+  is_batching = false;
+  batch_context.forEach((context) => context.notify());
+  batch_context.clear();
 }
