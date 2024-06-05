@@ -5,7 +5,7 @@
 /**@typedef {()=>()=>void} EffectCallback */
 /**@typedef {()=>Promise<void>} PromiseContext */
 /**@typedef {string} ContextID */
-/**@typedef {{notify:EffectCallback,link:(signal:Signal)=>void}} Context2 */
+/**@typedef {{notify:()=>void,link:(signal:Signal)=>void}} Context */
 
 /**
  * @template T
@@ -14,7 +14,7 @@ export class Signal {
   /** @type {T} */
   #value;
 
-  /**@type {Set<EffectCallback>} */
+  /**@type {Set<Context>} */
   #context_references = new Set();
 
   /** @param {T} [init] */
@@ -36,7 +36,7 @@ export class Signal {
       this.#context_references.forEach((context) => batch_context.add(context));
     } else {
       // this.#context_references.forEach((context) => context());
-      [...this.#context_references].forEach((context) => context());
+      [...this.#context_references].forEach((context) => context.notify());
     }
   }
 
@@ -48,7 +48,7 @@ export class Signal {
   get value() {
     if (current_context) {
       current_context.link(this);
-      this.#context_references.add(current_context.notify);
+      this.#context_references.add(current_context);
     }
 
     return this.#value;
@@ -65,13 +65,13 @@ export class Signal {
     if (is_batching) {
       this.#context_references.forEach((context) => batch_context.add(context));
     } else {
-      this.#context_references.forEach((context) => context());
+      this.#context_references.forEach((context) => context.notify());
     }
   }
 
   /**
    * Removes an effect based on effect callback
-   * @param {EffectCallback} fn
+   * @param {Context} fn
    */
   clear(fn) {
     this.#context_references.delete(fn);
@@ -97,14 +97,14 @@ export class Signal {
 //   }
 // }
 
-/**@type {{notify:()=>void,link:(signal:Signal)=>void}} */
+/**@type {Context} */
 let current_context = undefined;
 
 // /**@type {Set<Signal|Derived>} */
 // let dependent_signals = new Set();
 
 let is_batching = false;
-/** @type {Set<EffectCallback>} */
+/** @type {Set<Context>} */
 let batch_context = new Set();
 
 /**
@@ -119,6 +119,7 @@ export function effect(fn, id = undefined) {
   /**@type {Set<Signal>} */
   let disposeable_signals = new Set();
 
+  /**@type {Context} */
   let effect_context = { notify: execute, link };
 
   /**@param {Signal} signal */
@@ -135,9 +136,10 @@ export function effect(fn, id = undefined) {
   }
 
   function dispose() {
-    disposeable_signals.forEach((signal) => signal.clear(fn));
+    disposeable_signals.forEach((signal) => signal.clear(effect_context));
     if (typeof clean_up_fn === "function") {
       clean_up_fn();
+      console.log('inside dispose');
     }
   }
 
@@ -154,6 +156,6 @@ export async function batch(fn) {
   is_batching = true;
   await fn();
   is_batching = false;
-  batch_context.forEach((context) => context());
+  batch_context.forEach((context) => context.notify());
   batch_context.clear();
 }

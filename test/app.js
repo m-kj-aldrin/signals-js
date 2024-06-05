@@ -5,11 +5,17 @@ let s0 = new Signal(0);
 const dispose = effect(() => {
   console.log(s0.value);
 
-  return () => {};
+  return () => {
+    console.log("inside clean up");
+  };
 });
 
-setTimeout(() => {
-  s0.value = 1;
+let id = setInterval(() => {
+  s0.value++;
+  if (s0.value > 2) {
+    dispose();
+    clearInterval(id);
+  }
 }, 1000);
 
 // import { batch, effect, Signal, Derived } from "../signals.js";
