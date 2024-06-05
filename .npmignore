@@ -4,3 +4,6 @@ test/
 test/
 tsconfig.json
 index.html
+src
+vite.config.js
+jsconfig.json

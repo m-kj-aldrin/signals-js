@@ -1,14 +1,13 @@
 /**
- * Create an effect that runs every time the value of Signal is set
+ * Create an effect that runs every time the value of dependent Signals is set
  * @param {EffectCallback} fn
- * @param {string} id
  */
-export function effect(fn: EffectCallback, id?: string): () => void;
+export function effect(fn: EffectCallback): () => void;
 /**
- * setting value of signals inside a batch fn only signals dependent effects once if multiple signals shares same effects, if fn returns promise dependent effect is run when it resolves
- * @param {EffectCallback | PromiseContext} fn
+ * setting value of signals inside a batch fn only notifies dependent effects once if multiple signals shares same effects
+ * @param {EffectCallback} fn
  */
-export function batch(fn: EffectCallback | PromiseContext): Promise<void>;
+export function batch(fn: EffectCallback): void;
 /**
  * @module signals
  */
@@ -18,29 +17,39 @@ export function batch(fn: EffectCallback | PromiseContext): Promise<void>;
 /**@typedef {{notify:()=>void,link:(signal:Signal)=>void}} Context */
 /**
  * @template T
+ * Signal class
  */
 export class Signal<T> {
     /** @param {T} [init] */
     constructor(init?: T | undefined);
     /**
-     * set: sets value and runs all the effects referencing this Signal
+     * set: sets value and notify all dependent effects
      */
     set value(v: T);
     /**
      *
-     * get inside effect: adds the current effect to this signals references
+     * get inside effect: adds the signal as a dependency to the effect
      * @type {T}
      */
     get value(): T;
+    peek(): T;
     /**
-     * Run all the referenced effects manually
-     */
-    signal(): void;
-    /**
-     * Removes an effect based on effect callback
+     * Removes an effect based on effect context(returned by the effect function)
      * @param {Context} fn
      */
     clear(fn: Context): void;
+    #private;
+}
+/**
+ * @template {()=>any} T
+ */
+export class Derived<T extends () => any> {
+    /**
+     * @param {T} fn
+     */
+    constructor(fn: T);
+    get value(): ReturnType<T>;
+    peek(): ReturnType<T>;
     #private;
 }
 export type EffectCallback = () => () => void;
