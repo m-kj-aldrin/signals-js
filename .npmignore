@@ -1,1 +1,6 @@
 test/
+.github
+.gitignore
+test/
+tsconfig.json
+index.html
