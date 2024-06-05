@@ -9,7 +9,7 @@
 
 /**
  * @template T
- * Class for a Signal
+ * Signal class
  */
 export class Signal {
   /** @type {T} */
@@ -24,7 +24,7 @@ export class Signal {
   }
 
   /**
-   * set: sets value and runs all the effects referencing this Signal
+   * set: sets value and notify all dependent effects
    */
   set value(v) {
     if (this.peek() === v) return;
@@ -40,7 +40,7 @@ export class Signal {
 
   /**
    *
-   * get inside effect: adds the current effect to this signals references
+   * get inside effect: adds the signal as a dependency to the effect
    * @type {T}
    */
   get value() {
@@ -57,7 +57,7 @@ export class Signal {
   }
 
   /**
-   * Removes an effect based on effect callback
+   * Removes an effect based on effect context(returned by the effect function)
    * @param {Context} fn
    */
   clear(fn) {
@@ -98,11 +98,10 @@ export class Derived {
 let current_context = undefined;
 
 /**
- * Create an effect that runs every time the value of Signal is set
+ * Create an effect that runs every time the value of dependent Signals is set
  * @param {EffectCallback} fn
- * @param {string} id
  */
-export function effect(fn, id = undefined) {
+export function effect(fn) {
   /**@type {()=>void} */
   let clean_up_fn;
 
@@ -143,8 +142,8 @@ let is_batching = false;
 const batch_context = new Set();
 
 /**
- * setting value of signals inside a batch fn only signals dependent effects once if multiple signals shares same effects
- * @param {EffectCallback | PromiseContext} fn
+ * setting value of signals inside a batch fn only notifies dependent effects once if multiple signals shares same effects
+ * @param {EffectCallback} fn
  */
 export function batch(fn) {
   is_batching = true;

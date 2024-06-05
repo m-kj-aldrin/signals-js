@@ -5,7 +5,6 @@ let factor1 = new Signal(2);
 let product = new Derived(() => factor0.value * factor1.value);
 
 const dispose = effect(() => {
-  // console.log("app effect");
   let str = `${factor0.peek()} * ${factor1.peek()} = ${product.value}`;
   console.log(str);
 
@@ -14,10 +13,6 @@ const dispose = effect(() => {
   };
 });
 
-// batch(() => {
-//   factor0.value = 2;
-//   factor1.value = 5;
-// });
 let v0 = new Promise((res) => {
   setTimeout(() => {
     res(Math.floor(Math.random() * 100));
@@ -37,14 +32,15 @@ Promise.all([v0, v1]).then(([v0, v1]) => {
 });
 
 // let id = setInterval(() => {
-//   factor0.value++;
-//   if (factor0.value > 2) {
-//     console.log("last");
-//     factor0.value = 3;
+//   if (product.value > 1000) {
+//     console.log("over 1000");
+
 //     dispose();
 //     clearInterval(id);
+//     return;
 //   }
-// }, 0);
+//   factor0.value++;
+// }, 100);
 
 // import { batch, effect, Signal, Derived } from "../signals.js";
 
