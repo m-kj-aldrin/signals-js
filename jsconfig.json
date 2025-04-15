@@ -1,8 +1,0 @@
-{
-  "compilerOptions": {
-    "checkJs": true,
-    "target": "ESNext",
-    "lib": ["ESNext", "DOM"],
-    "module": "ESNext"
-  }
-}

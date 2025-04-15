@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/m-kj-aldrin/signals-js#readme",
   "devDependencies": {
+    "@types/node": "^22.14.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.12"
   }

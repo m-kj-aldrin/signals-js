@@ -1,13 +1,36 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "ESNext",
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "./types",
-    "strict": true,
-    "allowJs": true
+    /* Basic Options */
+    "target": "ES2020", // Or ES2022, ESNext. Choose based on your target environments. ES2020 is a safe modern bet.
+    "module": "ESNext", // Keep using modern ES Modules. Assumes you use a bundler or environment supporting it.
+    "lib": ["ES2020", "DOM"], // Include standard libraries (adjust if not running in DOM environment)
+    "outDir": "./dist", // Output directory for compiled JS and declaration files
+    "rootDir": "./src", // Specify the root directory of your source files (optional but good practice)
+
+    /* Module Resolution Options */
+    "moduleResolution": "bundler", // Recommended for modern bundlers (Vite, esbuild, Webpack, Rollup). Use "node" for classic Node resolution.
+
+    /* Strict Type-Checking Options */
+    "strict": true, // Enable all strict type-checking options (highly recommended)
+
+    /* Additional Checks */
+    "noUnusedLocals": true, // Report errors on unused local variables
+    "noUnusedParameters": true, // Report errors on unused parameters
+    "noImplicitReturns": true, // Report error when not all code paths in function return a value
+    "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statement
+
+    /* Emit Options */
+    "declaration": true, // Generate corresponding '.d.ts' declaration files
+    "declarationMap": true, // Generate sourcemaps for declaration files (improves Go To Definition)
+    "sourceMap": true, // Generate '.js.map' sourcemap files for debugging TS code in browsers/Node
+
+    /* Interop Constraints */
+    "esModuleInterop": true, // Enables compatibility between CommonJS and ES Modules
+    "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references to the same file.
+
+    /* Completeness */
+    "skipLibCheck": true // Skip type checking of all declaration files (*.d.ts) in node_modules (speeds up compilation)
   },
-  "include": ["src/**/*.js"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts"], // Include only TypeScript files in your source directory
+  "exclude": ["node_modules", "dist"] // Exclude dependencies and the output directory
 }

@@ -1,8 +1,8 @@
-import { Derived, Signal, batch, effect } from "../src/index.js";
+import { computed, Signal, batch, effect } from "../src/index.js";
 
 let factor0 = new Signal(1);
 let factor1 = new Signal(2);
-let product = new Derived(() => factor0.value * factor1.value);
+let product = computed(() => factor0.value * factor1.value);
 
 const dispose = effect(() => {
   let str = `${factor0.peek()} * ${factor1.peek()} = ${product.value}`;
@@ -13,12 +13,12 @@ const dispose = effect(() => {
   };
 });
 
-let v0 = new Promise((res) => {
+let v0 = new Promise<number>((res) => {
   setTimeout(() => {
     res(Math.floor(Math.random() * 100));
   }, 500);
 });
-let v1 = new Promise((res) => {
+let v1 = new Promise<number>((res) => {
   setTimeout(() => {
     res(Math.floor(Math.random() * 100));
   }, 700);
