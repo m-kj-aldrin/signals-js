@@ -1,13 +1,12 @@
 import { defineConfig } from "vite";
-import { resolve } from "path"; // This line should now work after installing @types/node
+import { resolve } from "path";
 
 export default defineConfig({
   build: {
     lib: {
-      // Ensure this points to your TypeScript entry file
-      entry: resolve(__dirname, "src/index.ts"), // <--- CHANGE HERE
+      entry: resolve(__dirname, "src/index.ts"),
       name: "signals",
-      fileName: () => "index.js", // Output JS file name
+      fileName: () => "index.js",
       formats: ["es"],
     },
     rollupOptions: {

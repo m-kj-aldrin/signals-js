@@ -2,7 +2,6 @@
  * @module signals
  */
 
-// --- Type Definitions ---
 /** Function passed to effect, optionally returns a cleanup function. */
 export type EffectCallback = () => void | (() => void);
 
@@ -12,14 +11,12 @@ export interface Context {
   link: (signal: Signal<any>) => void; // Effects can depend on signals of any type
 }
 
-// --- Signal Class ---
 /**
  * Signal class: Holds state and notifies dependents on change.
  * @template T The type of the value held by the signal.
  */
 export class Signal<T> {
-  // Using # for true private fields (runtime privacy)
-  #value: T | undefined; // Allow undefined initially, as constructor is optional
+  #value: T | undefined;
   #subscribers: Set<Context> = new Set();
 
   /**
@@ -36,19 +33,15 @@ export class Signal<T> {
    * @param v The new value.
    */
   set value(v: T | undefined) {
-    // Allow setting undefined if T allows it or if resetting
     if (Object.is(this.peek(), v)) {
-      return; // No change
+      return;
     }
 
     this.#value = v;
 
-    // Notify subscribers
     if (is_batching) {
-      // Add subscribers to the batch queue
       this.#subscribers.forEach((context) => batch_contexts.add(context));
     } else {
-      // Notify immediately, iterating over a copy to handle potential unsubscriptions during notification
       const subscribersToNotify = [...this.#subscribers];
       subscribersToNotify.forEach((context) => context.notify());
     }
@@ -87,7 +80,6 @@ export class Signal<T> {
   }
 }
 
-// --- Effect Tracking ---
 /** The currently active effect context, if any. */
 let current_context: Context | undefined = undefined;
 /** Set of contexts to notify after a batch operation completes. */
@@ -104,7 +96,6 @@ let is_batching: boolean = false;
  */
 export function effect(fn: EffectCallback): () => void {
   let cleanup_fn: (() => void) | void | undefined;
-  // Set of signals this effect depends on in the *current* execution
   const dependencies: Set<Signal<any>> = new Set();
 
   const effect_context: Context = { notify: execute, link };
@@ -116,48 +107,37 @@ export function effect(fn: EffectCallback): () => void {
 
   /** Executes the effect function and handles cleanup. */
   function execute(): void {
-    // 1. Clean up previous dependencies and run previous cleanup function
     disposeDependencies();
 
-    // 2. Set this effect as the current context
     current_context = effect_context;
     try {
-      // 3. Run the user's effect function. It will automatically
-      //    call `link()` for any signals accessed via `.value`
-      //    and potentially return a new cleanup function.
       cleanup_fn = fn();
     } finally {
-      // 4. Reset the current context after execution (or error)
       current_context = undefined;
     }
   }
 
   /** Cleans up dependencies and runs the associated cleanup function. */
   function disposeDependencies(): void {
-    // Unsubscribe this effect from all signals it previously depended on
     dependencies.forEach((signal) => signal._unsubscribe(effect_context));
-    dependencies.clear(); // Clear the dependency set for the next run
+    dependencies.clear();
+  }
 
-    // Run the cleanup function returned from the *previous* execution
-    if (typeof cleanup_fn === "function") {
-      cleanup_fn();
-      cleanup_fn = undefined; // Ensure cleanup runs only once
-    }
+  if (typeof cleanup_fn === "function") {
+    cleanup_fn();
+    cleanup_fn = undefined;
   }
 
   /** Disposes of the effect permanently. */
   function dispose(): void {
-    disposeDependencies(); // Perform final cleanup
+    disposeDependencies();
   }
 
-  // Run the effect immediately upon creation
   execute();
 
-  // Return the dispose function for manual cleanup control
   return dispose;
 }
 
-// --- Computed Signal ---
 /**
  * Represents a read-only signal whose value is computed based on other signals.
  * @template T The type of the computed value.
@@ -177,36 +157,25 @@ export interface ComputedSignal<T> {
  * @returns A `ComputedSignal<T>` object.
  */
 export function computed<T>(fn: () => T): ComputedSignal<T> {
-  // Internal signal to store the computed value. Start as undefined.
-  // We rely on the synchronous effect execution to set the initial T value.
   const signal = new Signal<T | undefined>(undefined);
 
-  // Effect to compute the value and update the internal signal
   effect(() => {
     const newValue = fn();
-    // Set the internal signal's value. The signal's setter
-    // handles change detection and notification.
     signal.value = newValue;
   });
 
-  // Return a read-only interface
   return {
     /** Gets the computed value, establishing dependencies if in an effect context. */
     get value(): T {
-      // We assert 'as T' because the effect runs synchronously on creation,
-      // ensuring the value is computed and set immediately.
-      // Accessing signal.value here correctly tracks dependencies.
       return signal.value as T;
     },
     /** Gets the computed value without establishing dependencies. */
     peek(): T {
-      // Assert 'as T' for the same reason as above.
       return signal.peek() as T;
     },
   };
 }
 
-// --- Batching ---
 /**
  * Batches multiple signal updates together. Effects dependent on the
  * updated signals within the batch will run only once after the batch completes.
@@ -214,21 +183,17 @@ export function computed<T>(fn: () => T): ComputedSignal<T> {
  */
 export function batch(fn: () => void): void {
   if (is_batching) {
-    // Already batching, just run the function without nesting logic
     fn();
     return;
   }
 
   is_batching = true;
   try {
-    fn(); // Run user code that might trigger signal sets
+    fn();
   } finally {
-    // End batching before notifying
     is_batching = false;
-    // Notify all unique contexts collected during the batch
-    // Iterate over a copy in case notifications trigger further changes (though ideally shouldn't happen with batching)
     const contextsToNotify = [...batch_contexts];
-    batch_contexts.clear(); // Clear contexts *before* notifying
+    batch_contexts.clear();
     contextsToNotify.forEach((context) => context.notify());
   }
 }
